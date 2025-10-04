@@ -10,11 +10,7 @@
   ],
   "virtualFolder": {
     "name": "<virtual_root>",
-    "files": [
-      {
-        "path": "startup_stm32f407xx.s"
-      }
-    ],
+    "files": [],
     "folders": []
   },
   "outDir": "build",
