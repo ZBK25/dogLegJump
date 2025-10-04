@@ -2,6 +2,8 @@
 #define MACONUM_CONTROL_H
 
 #define K_W 1
+//电机最大转速(rmp)
+#define MAXSPEED 400
 
 void maconumCal(float wheelSpeed[4], float vX, float vY, float w);
 
