@@ -30,7 +30,10 @@
 #include "font.h"
 #include "motor.h"
 #include "pid.h"
-
+#include "Caculate.h"
+#include "DJI.h"
+#include "wtr_can.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,7 +54,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+//四个麦轮电机
+Motor_t motor[4] = {{{&htim2,TIM_CHANNEL_1},&htim3,{GPIOA,MOTOR_WN_IN1_Pin},{GPIOA,MOTOR_WN_IN2_Pin},0,0,0,0},
+                    {{&htim2,TIM_CHANNEL_2},&htim4,{GPIOA,MOTOR_EN_IN1_Pin},{GPIOA,MOTOR_EN_IN2_Pin},0,0,0,0},
+                    {{&htim2,TIM_CHANNEL_3},&htim5,{GPIOA,MOTOR_ES_IN1_Pin},{GPIOA,MOTOR_ES_IN2_Pin},0,0,0,0},
+                    {{&htim2,TIM_CHANNEL_3},&htim8,{GPIOA,MOTOR_WS_IN1_Pin},{GPIOA,MOTOR_WS_IN2_Pin},0,0,0,0}}
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,7 +69,22 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int __io_putchar(int ch)
+{
+    HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+    return ch;
+}
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+  if (htim == &htim1){
+
+  }
+}
+
+//用于蓝牙通信
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart){
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -104,7 +126,7 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_Base_Start_IT(&htim1);  //TIM1定时器中断周期为10ms，用于编码器数据处理和控制麦轮电机
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -180,7 +202,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM7) {
+  if (htim->Instance == TIM7)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
@@ -202,8 +225,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
