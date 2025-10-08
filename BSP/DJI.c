@@ -90,8 +90,8 @@ void CanTransmit_DJI_1234(CAN_HandleTypeDef *hcanx, int16_t cm1_iq, int16_t cm2_
 	}
 	if (HAL_CAN_AddTxMessage(hcanx, &TxMessage, TxData, &TxMailbox) != HAL_OK)
 	{
-		throwhsm.wholestate = WHOLE_ERROR;
-        throwhsm.errorstate = ERROR_DJITRANSMITFAIL;
+		//throwhsm.wholestate = WHOLE_ERROR;
+        //throwhsm.errorstate = ERROR_DJITRANSMITFAIL;
 	}
 }
 
@@ -123,8 +123,8 @@ void CanTransmit_DJI_5678(CAN_HandleTypeDef *hcanx, int16_t cm5_iq, int16_t cm6_
 		;
 	if (HAL_CAN_AddTxMessage(hcanx, &TxMessage, TxData, &TxMailbox) != HAL_OK)
 	{
-		throwhsm.wholestate = WHOLE_ERROR;
-        throwhsm.errorstate = ERROR_DJITRANSMITFAIL;
+		//throwhsm.wholestate = WHOLE_ERROR;
+        //throwhsm.errorstate = ERROR_DJITRANSMITFAIL;
 	}
 }
 

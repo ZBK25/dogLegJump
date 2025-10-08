@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 #include "can.h"
-#include "ThrowHSM.h"
+//#include "ThrowHSM.h"
 
     typedef struct
     {
@@ -23,7 +23,7 @@ extern "C"
         float integral;  // 积分值
         float integralMax; // 积分最大值
         float integralMin; // 积分最小值
-    } PID_t;
+    } DJI_PID_t;
 
     typedef enum
     {
@@ -59,8 +59,8 @@ extern "C"
         float reductionRate;      // 减速比
         float encoder_resolution; // 编码器分辨率
 	uint16_t f_current; // 前馈电流
-        PID_t speedPID;
-        PID_t posPID;
+        DJI_PID_t speedPID;
+        DJI_PID_t posPID;
     } DJI_t;
 
     extern DJI_t hDJI[8];

@@ -4,7 +4,7 @@
 #include "math.h"
 
 //增量式PID算法
-void PID_Calc(PID_t *pid){
+void PID_Calc(DJI_PID_t *pid){
 	pid->cur_error = pid->ref - pid->fdb;
 	pid->output += pid->KP * (pid->cur_error - pid->error[1]) + pid->KI * pid->cur_error + pid->KD * (pid->cur_error - 2 * pid->error[1] + pid->error[0]);
 	pid->error[0] = pid->error[1];
@@ -16,7 +16,7 @@ void PID_Calc(PID_t *pid){
 }
 
 //比例算法
-void P_Calc(PID_t *pid){
+void P_Calc(DJI_PID_t *pid){
 	pid->cur_error = pid->ref - pid->fdb;
 	pid->output = pid->KP * pid->cur_error;
 	/*设定输出上限*/
@@ -28,7 +28,7 @@ void P_Calc(PID_t *pid){
 }
 
 /*位置式PID*/
-void PosePID_Calc(PID_t *pid)
+void PosePID_Calc(DJI_PID_t *pid)
 {
     pid->integral += pid->cur_error;
 

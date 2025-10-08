@@ -5,7 +5,7 @@ extern "C"
 {
 #endif
 #include "DJI.h"
-void PosePID_Calc(PID_t *pid);
+void PosePID_Calc(DJI_PID_t *pid);
 void positionServo(float ref, DJI_t * motor);
 
 void speedServo(float ref, DJI_t * motor);

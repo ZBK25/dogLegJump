@@ -19,15 +19,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "can.h"
-#include "i2c.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "oled.h"
-#include "font.h"
 #include "motor.h"
 #include "pid.h"
 #include "Caculate.h"
@@ -54,11 +52,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//四个麦轮电机
-Motor_t motor[4] = {{{&htim2,TIM_CHANNEL_1},&htim3,{GPIOA,MOTOR_WN_IN1_Pin},{GPIOA,MOTOR_WN_IN2_Pin},0,0,0,0},
-                    {{&htim2,TIM_CHANNEL_2},&htim4,{GPIOA,MOTOR_EN_IN1_Pin},{GPIOA,MOTOR_EN_IN2_Pin},0,0,0,0},
-                    {{&htim2,TIM_CHANNEL_3},&htim5,{GPIOA,MOTOR_ES_IN1_Pin},{GPIOA,MOTOR_ES_IN2_Pin},0,0,0,0},
-                    {{&htim2,TIM_CHANNEL_3},&htim8,{GPIOA,MOTOR_WS_IN1_Pin},{GPIOA,MOTOR_WS_IN2_Pin},0,0,0,0}}
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,12 +67,6 @@ int __io_putchar(int ch)
 {
     HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
     return ch;
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
-  if (htim == &htim1){
-
-  }
 }
 
 //用于蓝牙通信
@@ -116,17 +104,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
-  MX_TIM1_Init();
   MX_USART1_UART_Init();
-  MX_I2C1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM5_Init();
-  MX_TIM8_Init();
+  MX_TIM6_Init();
+  MX_TIM9_Init();
+  MX_TIM12_Init();
+  MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim1);  //TIM1定时器中断周期为10ms，用于编码器数据处理和控制麦轮电机
+  //HAL_TIM_Base_Start_IT(&htim1);  //TIM1定时器中断周期为10ms，用于编码器数据处理和控制麦轮电机
   /* USER CODE END 2 */
 
   /* Infinite loop */

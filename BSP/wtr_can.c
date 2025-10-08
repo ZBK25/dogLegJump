@@ -3,7 +3,7 @@
 #include "wtr_can.h"
 #include "can.h"
 #include "encoder.h"
-#include "FreeRTOS.h"
+//#include "FreeRTOS.h"
 
 uint8_t CanReceiveData[8];
 
@@ -95,7 +95,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
         }
         CanDataDecode(RxHeader);
     }
-    if(hcan->Instance == hcan2.Instance){
+    if(hcan->Instance == hcan1.Instance){
           // 检查接收FIFO是否有消息
       if (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) > 0) {
           // 接收消息
@@ -106,7 +106,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
               }
               // printf("\n");
               // 解析数据
-              ParseCANData(&RxHeader, RxData, &data,&caldata);
+              ParseCANData(&RxHeader, RxData, &encoderData,&encoderCalculateData);
           } else {
               printf("Failed to get message from FIFO\n");
           }
