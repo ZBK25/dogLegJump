@@ -39,25 +39,25 @@ HAL_StatusTypeDef DJI_Init()
 
 		hDJI[i].encoder_resolution = 8192.0f;
 	}
-    /*夹爪电机参数初始化 */
-    hDJI[0].posPID.outputMax=4000;
-    hDJI[0].posPID.KP=60;
-    hDJI[0].posPID.KI=3;
-    hDJI[0].posPID.KD=0.0;
-    hDJI[0].speedPID.outputMax=4000;
-    hDJI[0].speedPID.KI=0.4;
-    hDJI[0].speedPID.KD=0.4;
-    hDJI[0].speedPID.KP=12;
+    // /*夹爪电机参数初始化 */
+    // hDJI[0].posPID.outputMax=4000;
+    // hDJI[0].posPID.KP=60;
+    // hDJI[0].posPID.KI=3;
+    // hDJI[0].posPID.KD=0.0;
+    // hDJI[0].speedPID.outputMax=4000;
+    // hDJI[0].speedPID.KI=0.4;
+    // hDJI[0].speedPID.KD=0.4;
+    // hDJI[0].speedPID.KP=12;
 
-    /*自旋电机参数初始化*/
-    hDJI[1].posPID.outputMax=4000;
-    hDJI[1].posPID.KP=60;
-    hDJI[1].posPID.KI=3;
-    hDJI[1].posPID.KD=0.0;
-    hDJI[1].speedPID.outputMax=4000;
-    hDJI[1].speedPID.KI=0.4;
-    hDJI[1].speedPID.KD=0.4;
-    hDJI[1].speedPID.KP=12;
+    // /*自旋电机参数初始化*/
+    // hDJI[1].posPID.outputMax=4000;
+    // hDJI[1].posPID.KP=60;
+    // hDJI[1].posPID.KI=3;
+    // hDJI[1].posPID.KD=0.0;
+    // hDJI[1].speedPID.outputMax=4000;
+    // hDJI[1].speedPID.KI=0.4;
+    // hDJI[1].speedPID.KD=0.4;
+    // hDJI[1].speedPID.KP=12;
     return HAL_OK;
 }
 

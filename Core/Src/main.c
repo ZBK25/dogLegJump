@@ -54,13 +54,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-// PID_TypeDef motor_pid[4];
-int32_t set_spd = 0;
-// static int key_sta = 0;
-// int speed_step_sign = +1;
-
-// uint16_t TIM_COUNT[2];
-// #define SpeedStep 500
   uint8_t rxBuffer[DATAS_LEN] = {0};  //串口接收的数据缓冲区，最后一字节为\n
   int32_t errorNum = 0;
   uint8_t dataReady = 0;
@@ -76,7 +69,7 @@ int32_t set_spd = 0;
 
   uint8_t jumpFlag = 0; //起跳的标志位
   uint8_t runFlag = 0;  //移动标志位，为0，不移动；为1，向前移动
-  int counter = 0;  //起跳时间，counter*10ms
+  int counter = 0;  //起跳电机转动时间，counter*5ms
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,8 +90,6 @@ int __io_putchar(int ch)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart){
   if (huart == &huart1){
     
-    //HAL_UART_Transmit(&huart1,rxBuffer,DATAS_LEN,0xFFFF);
-    //printf("into rx\n");
     if (rxBuffer[0] == 0xAA && rxBuffer[DATAS_LEN-2] == 0xBB){
       if (rxBuffer[1] == 0x11){
         runFlag = 1;  //移动
@@ -110,10 +101,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart){
       }
 
       if (rxBuffer[2] == 0xFF){
-        jumpFlag = 1; //跳越
-        counter = 200 ;
+        jumpFlag = 1; //三条腿同向跳越
+        counter = 250 ;
         printf("jump\n");
       }
+      else if (rxBuffer[2] == 0x11)
+      {
+        jumpFlag = 2; //三条腿从中向外跳
+        counter = 250;
+        printf("jump center\n");
+      }
+      
       else{
         jumpFlag = 0; //不跳越
       }
@@ -130,6 +128,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   if (huart->Instance == USART1)
   {
+    //停止一切运动
     jumpFlag = 0;
     runFlag = 0;
     // 清除错误标志
@@ -212,17 +211,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-  // if (HAL_CAN_Start(&hcan1) != HAL_OK)
-  // {
-  //     Error_Handler();
-  // }
-
-  // // 启动中断接收，监听 FIFO 0
-  // if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-  // {
-  //     Error_Handler();
-  // }
-  //HAL_CAN_Receive_IT(&hcan1, CAN_RX_FIFO0);   //启动CAN接收中断
   /* 麦轮电机初始化*/
   for (int i=0;i<4;i++){
     PID_Init(&hpid_speed[i],
@@ -239,22 +227,13 @@ int main(void)
   }
 
   HAL_TIM_Base_Start_IT(&htim6);  //用于编码器数据处理和控制麦轮电机
+  /*2006电机初始化*/
   for (int i=0;i<8;i++){
     hDJI[i].motorType = M2006;
   }
   DJI_Init();
-  // printf("1\n");
-  //CANFilterInit(&hcan1);
-  // printf("2\n");
-  // ENCODER_CANFilterInit(&hcan1);
-  // printf("3\n");
-  // HAL_CAN_Start(&hcan1);
-  // printf("4\n");
-  // HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+
   CAN_Init();
-  //my_can_filter_init_recv_all(&hcan1);     //配置CAN过滤器
-  //HAL_CAN_Start(&hcan1);
-  //HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //启动CAN接收中断
   HAL_TIM_Base_Start_IT(&htim6);
   __HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_RXNE); //清除可能残余的标志位
   HAL_UART_Receive_IT(&huart1, (uint8_t*)rxBuffer, DATAS_LEN);
@@ -340,7 +319,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
   if (htim->Instance == TIM6){
-    if (jumpFlag == 1){   //跳越
+    if (jumpFlag == 1){   //三条腿同向跳越
       counter--;
       if (counter <= 0){
         jumpFlag = 0;
@@ -349,38 +328,40 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       //hDJI[0].FdbData.rpm = moto_chassis[0].speed_rpm;
       //hDJI[0].FdbData.rpm = encoderData.angularSpeed;
       speedServo(500,&hDJI[0]);
-      speedServo(500,&hDJI[1]);
-      speedServo(-500,&hDJI[2]);
+      speedServo(-500,&hDJI[1]);
+      speedServo(500,&hDJI[2]);
       //positionServo(180, &hDJI[0]);
       // set_moto_current(&hcan1, hDJI[0].speedPID.output,   //将PID的计算结果通过CAN发送到电机
       //                     hDJI[1].speedPID.output,
       //                     hDJI[2].speedPID.output,
       //                     hDJI[3].speedPID.output);
       CanTransmit_DJI_1234(&hcan1, hDJI[0].speedPID.output, hDJI[1].speedPID.output,hDJI[2].speedPID.output, hDJI[3].speedPID.output);
+      printf("%d,%d,%d\n",(int)hDJI[0].speedPID.output, (int)hDJI[1].speedPID.output, (int)hDJI[2].speedPID.output);
       //printf("%d,%d\n",(int)(hDJI[0].FdbData.rpm), (int)(hDJI[0].speedPID.ref));
       //printf("%d,%d\n",(int)(hDJI[0].posPID.fdb), (int)(hDJI[0].posPID.ref));
+      //CanTransmit_DJI_1234(&hcan1, 4000, 4000,4000, 4000);
     }
+    else if (jumpFlag == 2) //三条腿从中向外跳
+    {
+      counter--;
+      if (counter <= 0){
+        jumpFlag = 0;
+      }
+      speedServo(500,&hDJI[0]);
+      speedServo(500,&hDJI[1]);
+      speedServo(-500,&hDJI[2]);
+      CanTransmit_DJI_1234(&hcan1, hDJI[0].speedPID.output, hDJI[1].speedPID.output,hDJI[2].speedPID.output, hDJI[3].speedPID.output);
+      printf("%d,%d,%d\n",(int)hDJI[0].speedPID.output, (int)hDJI[1].speedPID.output, (int)hDJI[2].speedPID.output);
+    }
+    
     else {  //不跳越
       CanTransmit_DJI_1234(&hcan1,0,0,0,0);
     }
 
-    // //DJI2006电机控制
-    // //hDJI[0].FdbData.rpm = moto_chassis[0].speed_rpm;
-    // //hDJI[0].FdbData.rpm = encoderData.angularSpeed;
-    // speedServo(200,&hDJI[0]);
-    // //positionServo(180, &hDJI[0]);
-    // // set_moto_current(&hcan1, hDJI[0].speedPID.output,   //将PID的计算结果通过CAN发送到电机
-    // //                     hDJI[1].speedPID.output,
-    // //                     hDJI[2].speedPID.output,
-    // //                     hDJI[3].speedPID.output);
-    // CanTransmit_DJI_1234(&hcan1, hDJI[0].speedPID.output, hDJI[1].speedPID.output,hDJI[2].speedPID.output, hDJI[3].speedPID.output);
-    // printf("%d,%d\n",(int)(hDJI[0].FdbData.rpm), (int)(hDJI[0].speedPID.ref));
-    // //printf("%d,%d\n",(int)(hDJI[0].posPID.fdb), (int)(hDJI[0].posPID.ref));
-
     if (runFlag == 1){  //前进
       //运动电机控制
       for (int i=0;i<2;i++){
-        hpid_speed[i].target = 500;
+        hpid_speed[i].target = -350;
         Encoder_Progress(&hmotor[i]);
         // motor_out_posi = PID_Calculate(&hpid_position,hmotor.real_round);
         // hpid_speed.target = motor_out_posi;
@@ -389,7 +370,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Motor_SetSpeed(&hmotor[i],motor_out_speed);
       }
       for (int i=2;i<4;i++){
-        hpid_speed[i].target = -100;
+        hpid_speed[i].target = 350;
         Encoder_Progress(&hmotor[i]);
         // motor_out_posi = PID_Calculate(&hpid_position,hmotor.real_round);
         // hpid_speed.target = motor_out_posi;
@@ -403,26 +384,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Motor_SetSpeed(&hmotor[i],0);
       }
     }
-    // //运动电机控制
-    // for (int i=0;i<2;i++){
-    //   hpid_speed[i].target = 100;
-    //   Encoder_Progress(&hmotor[i]);
-    //   // motor_out_posi = PID_Calculate(&hpid_position,hmotor.real_round);
-    //   // hpid_speed.target = motor_out_posi;
-    //   motor_out_speed = PID_Calculate(&hpid_speed[i],hmotor[i].real_speed);
-    //   //printf("%d,%d\n",(int)(hmotor.real_speed*100),(int)hpid_speed.target*100);
-    //   Motor_SetSpeed(&hmotor[i],motor_out_speed);
-    // }
-    // for (int i=2;i<4;i++){
-    //   hpid_speed[i].target = -100;
-    //   Encoder_Progress(&hmotor[i]);
-    //   // motor_out_posi = PID_Calculate(&hpid_position,hmotor.real_round);
-    //   // hpid_speed.target = motor_out_posi;
-    //   motor_out_speed = PID_Calculate(&hpid_speed[i],hmotor[i].real_speed);
-    //   //printf("%d,%d\n",(int)(hmotor.real_speed*100),(int)hpid_speed.target*100);
-    //   Motor_SetSpeed(&hmotor[i],motor_out_speed);
-    // }
-    //printf("run\n");
   }
 
   /* USER CODE END Callback 0 */
